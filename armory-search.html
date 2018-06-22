@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+
+    <title>Feenix Tools</title>
+    <link rel="canonical" href="https://warlorddrak.github.io/">
+
+    <meta name="author" content="Warlord Drak" />
+    <meta name="description" content="Feenix Tools" />
+    <meta name="keywords" content="" />
+    <meta name="twitter:author" content="@WarlordDrak" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:creator" content="@WarlordDrak" />
+    <meta property="og:title" content="Feenix Tools" />
+    <meta property="og:url" content="https://warlorddrak.github.io/" />
+    <meta property="og:description" content="Tools for the new Feenix server" />
+    <meta property="og:image" content="https://warlorddrak.github.io/drak.png" />
+    <meta property="og:locale" content="en-US" />
+
+    <!--
+<link rel="shortcut icon" href="https://warlorddrak.github.io/drak.png">
+    <link rel="stylesheet" href="maybe.css">
+    -->
+
+
+<script type="text/javascript" src="char_db.js"></script>
+<script type="text/javascript">
+// LIB START
+function get(id) {
+  return document.getElementById(id)
+}
+function sha256(str) {
+  var buffer = new TextEncoder("utf-8").encode(str);
+  return crypto.subtle.digest("SHA-256", buffer).then(function (hash) {
+    return hex(hash);
+  });
+}
+function hex(buffer) {
+  var hexCodes = [];
+  var view = new DataView(buffer);
+  for (var i = 0; i < view.byteLength; i += 4) {
+    var value = view.getUint32(i)
+    var stringValue = value.toString(16)
+    var padding = '00000000'
+    var paddedValue = (padding + stringValue).slice(-padding.length)
+    hexCodes.push(paddedValue);
+  }
+  return hexCodes.join("");
+}
+// LIB END
+
+function search() {
+  var name = get('character_name').value.toLowerCase()
+  var timestamp = CHAR_DB['timestamp']
+  sha256(name + timestamp).then((hashed_name) => {
+    char_id = CHAR_DB[hashed_name]
+    if (char_id) {
+      var link = "https://wowfeenix.com/armory/player/" + char_id + "/1"
+      get("armory_link").innerText = link
+      get("armory_link").setAttribute('href', link)
+      get('armory_preview').setAttribute('src', link)
+    } else {
+      get("armory_link").innerText = "I do not know this character! :("
+      get("armory_link").setAttribute('href', 'https://wowfeenix.com')
+      get('armory_preview').setAttribute('src', '')
+    }
+  })
+}
+
+
+</script>
+  </head>
+
+  <body class="">
+    <noscript>Please activate Javascript to use this site!</noscript>
+
+    <h1>Feenix Armory Search</h1>
+
+    <input type="text" id="character_name" onkeyup="search()" />
+    <a href="" id="armory_link"></a>
+
+    <iframe id="armory_preview" src="" style="overflow:hidden;overflow-y:hidden;width:100%;height:82vh;border:none;margin:0;"></iframe>
+
+  </body>
+</html>
