@@ -53,7 +53,8 @@ function search() {
   var name = get('character_name').value.toLowerCase()
   var timestamp = CHAR_DB['timestamp']
   sha256(name + timestamp).then((hashed_name) => {
-    char_id = CHAR_DB[hashed_name]
+    var min_hashed_name = hashed_name.substring(0, 20)
+    char_id = CHAR_DB[min_hashed_name]
     if (char_id) {
       var link = "https://wowfeenix.com/armory/player/" + char_id + "/1"
       get("armory_link").innerText = link
