@@ -35,31 +35,6 @@ function round2dec(num) {
 // END LIB
 
 // HONOR LIB
-function rank2rp(rank) {
-    var _rank   = Math.floor(rank)
-    var percent = rank - _rank
-    if (rank >= 3.0) {
-        return (rank - 2.0) * 5000.0
-    } else if (rank >= 2.0) {
-        return 2000 + (rank - 2.0) * 3000
-    }
-    return 0.0
-}
-function rp2rank(rp, rpfactor=1.0) {
-    if (rp >= 5000.0 * rpfactor) {
-        return rp / (5000.0 * rpfactor) + 2.0
-    } else if (rp >= (2000.0 * rpfactor)) {
-        return 2.0
-    }
-    return 0.0
-}
-function groups(players) {
-    return BREAK_PTS.map(break_pt => Math.floor(Math.round(break_pt * players)))
-}
-function render_groups(groups) {
-    rank = 14
-    return groups.map((group, idx) => `Top ${group} standing is needed to reach rank ${rank - idx} (bracket ${idx + 1})`)
-}
 const BREAK_PTS = [0.002 // r14
 , 0.007
 , 0.017
@@ -85,6 +60,32 @@ const REF_WEEK = [ 13000.0 // top CP score gets top RP score
 ,   400.0
 ,     0.0 // bottom end point
 ]
+function rank2rp(rank) {
+    var _rank   = Math.floor(rank)
+    var percent = rank - _rank
+    if (rank >= 3.0) {
+        return (rank - 2.0) * 5000.0
+    } else if (rank >= 2.0) {
+        return 2000 + (rank - 2.0) * 3000
+    }
+    return 0.0
+}
+function rp2rank(rp, rpfactor=1.0) {
+    if (rp >= 5000.0 * rpfactor) {
+        return rp / (5000.0 * rpfactor) + 2.0
+    } else if (rp >= (2000.0 * rpfactor)) {
+        return 2.0
+    }
+    return 0.0
+}
+function groups(players) {
+    return BREAK_PTS.map(break_pt => Math.floor(Math.round(break_pt * players)))
+}
+function render_groups(groups) {
+    rank = 14
+    return groups.map((group, idx) =>
+    `Top ${group} standing is bracket ${idx + 1}, gaining ${REF_WEEK[idx+1]} - ${REF_WEEK[idx]} RP (r${rank - idx} cutoff, if rpfactor=1.0)`)
+}
 // END HONOR LIB
 </script>
   </head>
@@ -181,7 +182,7 @@ get('brackets_list').value += `With your estimated standing of ${STANDING}, you 
 get('brackets_list').value += `Gaining between ${brkt.upperRp} and ${brkt.lowerRp} RP, estimating RP gain of ${RP_GAIN_ESTIMATE}\n`
 get('brackets_list').value += `Reaching between r${MAX_RANK_AFTER_UPDATE} and r${MIN_RANK_AFTER_UPDATE}, estimating rank ${RANK_ESTIMATE}\n\n`
 
-get('brackets_list').value += `Brackets (ignoring rpfactor [the lower the factor, the lower the bracket requirements]):\n`
+get('brackets_list').value += `Brackets:\n`
 get('brackets_list').value += render_groups(grps).join('\n')
     </script>
   </body>
