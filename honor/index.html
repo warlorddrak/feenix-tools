@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+
+    <title>WoW Classic Honor Calculator</title>
+    <link rel="canonical" href="https://warlorddrak.github.io/wow-tools/honor/">
+
+    <meta name="author" content="Warlord Drak" />
+    <meta name="description" content="WoW Classic Honor Calculator" />
+    <meta name="twitter:author" content="@WarlordDrak" />
+    <meta name="twitter:card" content="WoW Classic Honor Calculator" />
+    <meta name="twitter:creator" content="@WarlordDrak" />
+    <meta property="og:title" content="WoW Classic Honor Calculator" />
+    <meta property="og:url" content="https://warlorddrak.github.io/wow-tools/honor/" />
+    <meta property="og:description" content="WoW Classic Honor Calculator" />
+    <meta property="og:image" content="drak.png" />
+    <meta property="og:locale" content="en-US" />
+
+    <link rel="shortcut icon" href="drak.png">
+    <link rel="stylesheet" href="https://cdn.rawgit.com/Chalarangelo/mini.css/v3.0.0/dist/mini-default.min.css">
+
+<script type="text/javascript">
+// LIB
+function get(id) {
+  return document.getElementById(id)
+}
+function setText(id, text) {
+  get(id).textContent = text
+}
+function round2dec(num) {
+  return num.toFixed(2)
+}
+// END LIB
+
+// HONOR LIB
+function rank2rp(rank) {
+    var _rank   = Math.floor(rank)
+    var percent = rank - _rank
+    if (rank >= 3.0) {
+        return (rank - 2.0) * 5000.0
+    } else if (rank >= 2.0) {
+        return 2000 + (rank - 2.0) * 3000
+    }
+    return 0.0
+}
+function rp2rank(rp, rpfactor=1.0) {
+    if (rp >= 5000.0 * rpfactor) {
+        return rp / (5000.0 * rpfactor) + 2.0
+    } else if (rp >= (2000.0 * rpfactor)) {
+        return 2.0
+    }
+    return 0.0
+}
+function groups(players) {
+    return BREAK_PTS.map(break_pt => Math.floor(Math.round(break_pt * players)))
+}
+function render_groups(groups) {
+    rank = 14
+    return groups.map((group, idx) => `Top ${group} standing is needed to reach rank ${rank - idx} (bracket ${idx + 1})`)
+}
+const BREAK_PTS = [0.002 // r14
+, 0.007
+, 0.017
+, 0.037
+, 0.077 // r10
+, 0.137
+, 0.207
+, 0.287 // r7
+]
+const REF_WEEK = [ 13000.0 // top CP score gets top RP score
+, 12000.0  // breakpoint 14
+, 11000.0
+, 10000.0
+,  9000.0
+,  8000.0
+,  7000.0  // breakpoint 9
+,  6000.0
+,  5000.0
+,  4000.0
+,  3000.0
+,  2000.0  // breakpoint 4
+,  1000.0
+,   400.0
+,     0.0 // bottom end point
+]
+// END HONOR LIB
+</script>
+  </head>
+
+  <body class="container">
+    <noscript class="card error">Please activate Javascript to use this site!</noscript>
+
+    <h1>WoW Classic Honor Calculator</h1>
+
+<p>
+Estimates based on your current <code>rank</code> (default <code>7.0</code>), your estimated <code>standing</code> (default <code>50</code>) and an estimate for the total number of <code>players</code> (default <code>500</code>).
+Some private servers reduce the amount of RP required for a certain rank. You can control this with the <code>rpfactor</code> parameter (default <code>1.0</code>, neofeenix would be <code>0.67</code>).
+All parameters are passed as URL parameters, like this:
+</p>
+
+<pre>
+?rank=9.40&amp;standing=50&amp;players=600&amp;rpfactor=0.67
+</pre>
+
+<p>
+A <code>rank</code> of <code>9.4</code> means that you are rank 9 and 40% progressed towards rank 10.
+</p>
+
+<p>
+The RP/rank gain estimation is more accurate the closer you are to the center of your bracket.
+The closer you are to the top of the bracket, the higher the estimation could be (meaning you will probably gain less).
+The closer you are to the bottom of the bracket, the lower the estimation could be (meaning you will probably gain more).
+It also depends on how close or far the players at the bracket borders are CP-wise:
+The greater the gap, the more gain for the bottom player(s) in the higher bracket and the less gain for the top player(s) in the lower bracket.
+The smaller the gap, the more less for the bottom player(s) in the higher bracket and the more gain for the top player(s) in the lower bracket.
+</p>
+
+    <h3>Results</h3>
+
+    <textarea id="brackets_list" style="width:100%;height:500px;font-family:monospace;">
+    </textarea>
+
+    <script type="text/javascript">
+function getParameters() {
+  const url = new URL(window.location.href)
+  return {
+    'rank' : Number(url.searchParams.get('rank') || 7.0),
+    'standing' : Number(url.searchParams.get('standing') || 50.0),
+    'players' : Number(url.searchParams.get('players') || 500.0),
+    'rpfactor': Number(url.searchParams.get('rpfactor') || 1.0)
+  }
+}
+const PARAMETERS = getParameters()
+const STANDING = PARAMETERS.standing
+const RPFACTOR = PARAMETERS.rpfactor
+const CALC_RP = rank2rp(PARAMETERS.rank)
+const VIEW_RP = CALC_RP * RPFACTOR
+const DECAY = VIEW_RP * 0.2
+const RP_AFTER_DECAY = VIEW_RP - DECAY
+
+function bracket(standing, groups) {
+  var brkt = 1.0
+  var upperBound = 1.0
+  var lowerBound = 1.0
+  for (i = 0; i < groups.length; ++i) {
+    var grp = groups[i]
+    if (standing <= grp) {
+      lowerBound = grp
+      break;
+    }
+    upperBound = Number(grp) + 1.0
+    brkt += 1.0
+  }
+  return {
+    'bracket': brkt,
+    'upperSt': upperBound,
+    'lowerSt': lowerBound,
+    'bracket_players': lowerBound - upperBound + 1.0,
+    'upperRp': REF_WEEK[brkt - 1],
+    'lowerRp': REF_WEEK[brkt],
+    'rpEstimate': 0.0
+  }
+}
+
+const grps = groups(PARAMETERS.players)
+const brkt = bracket(PARAMETERS.standing, grps)
+const standingRelativeToBracket = (brkt.lowerSt - STANDING + 1.0) / brkt.bracket_players
+
+const RP_AFTER_MAX_GAIN = RP_AFTER_DECAY + brkt.upperRp
+const RP_AFTER_MIN_GAIN = RP_AFTER_DECAY + brkt.lowerRp
+const RP_GAIN_ESTIMATE = (brkt.upperRp - brkt.lowerRp) * standingRelativeToBracket + brkt.lowerRp
+const RP_AFTER_GAIN_ESTIMATE = RP_AFTER_DECAY + RP_GAIN_ESTIMATE
+const MAX_RANK_AFTER_UPDATE = round2dec(rp2rank(RP_AFTER_MAX_GAIN, RPFACTOR))
+const MIN_RANK_AFTER_UPDATE = round2dec(rp2rank(RP_AFTER_MIN_GAIN, RPFACTOR))
+const RANK_ESTIMATE = round2dec(rp2rank(RP_AFTER_GAIN_ESTIMATE, RPFACTOR))
+
+get('brackets_list').value = `Currently rank ${PARAMETERS.rank} (${CALC_RP} * ${RPFACTOR} = ${VIEW_RP}), decaying ${DECAY} RP\n`
+get('brackets_list').value += `With your estimated standing of ${STANDING}, you will be in bracket: ${brkt.bracket}\n`
+get('brackets_list').value += `Gaining between ${brkt.upperRp} and ${brkt.lowerRp} RP, estimating RP gain of ${RP_GAIN_ESTIMATE}\n`
+get('brackets_list').value += `Reaching between r${MAX_RANK_AFTER_UPDATE} and r${MIN_RANK_AFTER_UPDATE}, estimating rank ${RANK_ESTIMATE}\n\n`
+
+get('brackets_list').value += `Brackets (ignoring rpfactor [the lower the factor, the lower the bracket requirements]):\n`
+get('brackets_list').value += render_groups(grps).join('\n')
+    </script>
+  </body>
+</html>
