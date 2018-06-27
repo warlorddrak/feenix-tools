@@ -177,7 +177,7 @@ const MAX_RANK_AFTER_UPDATE = round2dec(rp2rank(RP_AFTER_MAX_GAIN, RPFACTOR))
 const MIN_RANK_AFTER_UPDATE = round2dec(rp2rank(RP_AFTER_MIN_GAIN, RPFACTOR))
 const RANK_ESTIMATE = round2dec(rp2rank(RP_AFTER_GAIN_ESTIMATE, RPFACTOR))
 
-get('brackets_list').value = `Currently rank ${PARAMETERS.rank} (${CALC_RP} * ${RPFACTOR} = ${VIEW_RP}), decaying ${DECAY} RP\n`
+get('brackets_list').value = `Currently rank ${round2dec(PARAMETERS.rank)} (${round2dec(CALC_RP)} * ${RPFACTOR} = ${round2dec(VIEW_RP)}), decaying ${round2dec(DECAY)} RP\n`
 if (RPFACTOR < 1.0) {
   var rankRPs = [60000.0, 55000.0, 50000.0, 45000.0, 40000.0, 35000.0, 30000.0, 25000.0]
   for (var i = 0; i < rankRPs.length; i++) {
@@ -185,8 +185,8 @@ if (RPFACTOR < 1.0) {
   }
 }
 get('brackets_list').value += `With your estimated standing of ${STANDING}, you will be in bracket: ${brkt.bracket}\n`
-get('brackets_list').value += `Gaining between ${brkt.upperRp} and ${brkt.lowerRp} RP, estimating RP gain of ${round2dec(RP_GAIN_ESTIMATE)}\n`
-get('brackets_list').value += `Reaching between r${MAX_RANK_AFTER_UPDATE} and r${MIN_RANK_AFTER_UPDATE}, estimating rank ${RANK_ESTIMATE}\n\n`
+get('brackets_list').value += `Gaining between ${brkt.lowerRp} and ${brkt.upperRp}  RP, estimating RP gain of ${round2dec(RP_GAIN_ESTIMATE)}\n`
+get('brackets_list').value += `Reaching between r${MIN_RANK_AFTER_UPDATE} and r${MAX_RANK_AFTER_UPDATE}, estimating rank ${RANK_ESTIMATE}\n\n`
 
 get('brackets_list').value += `Brackets:\n`
 get('brackets_list').value += render_groups(grps).join('\n')
